@@ -149,6 +149,32 @@ document.addEventListener('DOMContentLoaded', () => {
             updateCursor();
         }
     });
+    // ... (Your existing D-pad bindings) ...
+
+    // --- Action Button Bindings ---
+    
+    bindButton('btn-a', () => {
+        const activeCell = document.querySelector('.cell.active');
+        if (activeCell) {
+            // Replace the placeholder text with a standard tracker note format
+            // [Note] [Instrument] [Volume] [Effect]
+            activeCell.innerText = 'C-4 01 F ...';
+            
+            // Standard tracker behavior: auto-advance cursor after entering a note
+            if (currentRow < MAX_ROWS - 1) {
+                currentRow++;
+                updateCursor();
+            }
+        }
+    });
+
+    bindButton('btn-b', () => {
+        const activeCell = document.querySelector('.cell.active');
+        if (activeCell) {
+            // Revert the cell back to the empty placeholder format
+            activeCell.innerText = '--- .. .. ...';
+        }
+    });
 
     console.log("All tracker UI modules loaded and bound.");
 });
