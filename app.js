@@ -42,14 +42,17 @@ document.getElementById('start-audio').addEventListener('click', async (e) => {
     e.target.style.color = "#121212";
 });
 
-// --- 3. Tracker Grid Generation ---
-// Add global constants for our grid size so our D-pad knows the boundaries
+// --- 3. UI Constants & State ---
 const MAX_ROWS = 64;
 const MAX_TRACKS = 4;
+let currentRow = 0;
+let currentTrack = 0;
 
+// --- 4. Tracker Grid Generation ---
 function generateTrackerGrid() {
     const grid = document.getElementById('tracker-grid');
-    grid.innerHTML = ''; // Clear grid if regenerating
+    if (!grid) return; // Prevent errors if the HTML is missing
+    grid.innerHTML = ''; 
     
     for (let i = 0; i < MAX_ROWS; i++) {
         const rowDiv = document.createElement('div');
@@ -63,7 +66,6 @@ function generateTrackerGrid() {
         for (let j = 0; j < MAX_TRACKS; j++) {
             const trackCell = document.createElement('div');
             trackCell.className = 'cell';
-            // Assign a unique ID using the row and track indices (e.g., "cell-0-2")
             trackCell.id = `cell-${i}-${j}`;
             trackCell.innerText = '--- .. .. ...'; 
             rowDiv.appendChild(trackCell);
@@ -73,40 +75,50 @@ function generateTrackerGrid() {
     }
 }
 
-// --- 4. Gamepad Mobile Input Handling ---
-
-// --- Cursor Logic ---
-let currentRow = 0;
-let currentTrack = 0;
-
+// --- 5. Cursor Logic ---
 function updateCursor() {
-    // 1. Find the currently active cell and remove the highlight
+    // Remove old highlight
     const currentActive = document.querySelector('.cell.active');
     if (currentActive) {
         currentActive.classList.remove('active');
     }
 
-    // 2. Find the new target cell using our coordinates
+    // Apply new highlight
     const targetCell = document.getElementById(`cell-${currentRow}-${currentTrack}`);
-    
-    // 3. Apply the highlight and scroll it into view
     if (targetCell) {
         targetCell.classList.add('active');
-        
-        // Ensure the cursor doesn't get hidden behind the gamepad
-        targetCell.scrollIntoView({ 
-            block: 'center', 
-            behavior: 'auto' 
-        });
+        targetCell.scrollIntoView({ block: 'center', behavior: 'auto' });
+        console.log(`Cursor moved to: Row ${currentRow}, Track ${currentTrack}`);
+    } else {
+        console.error(`Could not find cell: cell-${currentRow}-${currentTrack}`);
     }
 }
 
-// Initialize the grid and set the starting cursor position
+// Initialize the grid visually on page load
 generateTrackerGrid();
 updateCursor(); 
 
-// --- Updated Gamepad Mobile Input Handling ---
+// --- 6. Gamepad Mobile Input Handling ---
+function bindButton(id, action) {
+    const btn = document.getElementById(id);
+    if (!btn) {
+        console.warn(`Button ${id} not found in HTML.`);
+        return;
+    }
 
+    // Handle mobile touch
+    btn.addEventListener('touchstart', (e) => {
+        e.preventDefault(); 
+        action();
+    });
+    
+    // Handle desktop mouse clicks
+    btn.addEventListener('mousedown', (e) => {
+        action();
+    });
+}
+
+// Navigation Bindings
 bindButton('btn-up', () => {
     if (currentRow > 0) {
         currentRow--;
@@ -134,7 +146,3 @@ bindButton('btn-right', () => {
         updateCursor();
     }
 });
-
-
-// Initialize the grid visually on page load
-generateTrackerGrid();
