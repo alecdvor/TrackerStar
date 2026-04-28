@@ -133,4 +133,10 @@ main {
 .action-btn:active {
     background: #ff0000;
 }
+/* The active cursor highlight */
+.cell.active {
+    background-color: #00ff00;
+    color: #121212;
+    font-weight: bold;
+}
 
