@@ -43,24 +43,28 @@ document.getElementById('start-audio').addEventListener('click', async (e) => {
 });
 
 // --- 3. Tracker Grid Generation ---
-function generateTrackerGrid(rows = 64, tracks = 4) {
+// Add global constants for our grid size so our D-pad knows the boundaries
+const MAX_ROWS = 64;
+const MAX_TRACKS = 4;
+
+function generateTrackerGrid() {
     const grid = document.getElementById('tracker-grid');
+    grid.innerHTML = ''; // Clear grid if regenerating
     
-    for (let i = 0; i < rows; i++) {
+    for (let i = 0; i < MAX_ROWS; i++) {
         const rowDiv = document.createElement('div');
         rowDiv.className = 'row';
 
-        // Create the Row Index (Formatted in Hexadecimal: 00 to 3F)
         const rowNum = document.createElement('div');
         rowNum.className = 'cell row-num';
         rowNum.innerText = i.toString(16).padStart(2, '0').toUpperCase();
         rowDiv.appendChild(rowNum);
 
-        // Create the Track Columns [Note] [Instrument] [Volume] [Effect]
-        for (let j = 0; j < tracks; j++) {
+        for (let j = 0; j < MAX_TRACKS; j++) {
             const trackCell = document.createElement('div');
             trackCell.className = 'cell';
-            // Placeholder tracker data format: --- (Note) .. (Instr) .. (Vol) ... (FX)
+            // Assign a unique ID using the row and track indices (e.g., "cell-0-2")
+            trackCell.id = `cell-${i}-${j}`;
             trackCell.innerText = '--- .. .. ...'; 
             rowDiv.appendChild(trackCell);
         }
@@ -68,6 +72,7 @@ function generateTrackerGrid(rows = 64, tracks = 4) {
         grid.appendChild(rowDiv);
     }
 }
+
 // --- 4. Gamepad Mobile Input Handling ---
 
 // Helper function to bind both touch and click for testing on desktop
