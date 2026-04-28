@@ -75,59 +75,66 @@ function generateTrackerGrid() {
 
 // --- 4. Gamepad Mobile Input Handling ---
 
-// Helper function to bind both touch and click for testing on desktop
-function bindButton(id, action) {
-    const btn = document.getElementById(id);
-    if (!btn) return;
-
-    // touchstart is crucial for zero-latency mobile response
-    btn.addEventListener('touchstart', (e) => {
-        e.preventDefault(); // Stop mobile browsers from zooming/scrolling
-        action();
-    });
-    
-    // Keep mousedown for desktop testing
-    btn.addEventListener('mousedown', (e) => {
-        action();
-    });
-}
-
-// Logic for grid navigation (Placeholders for now)
+// --- Cursor Logic ---
 let currentRow = 0;
 let currentTrack = 0;
 
+function updateCursor() {
+    // 1. Find the currently active cell and remove the highlight
+    const currentActive = document.querySelector('.cell.active');
+    if (currentActive) {
+        currentActive.classList.remove('active');
+    }
+
+    // 2. Find the new target cell using our coordinates
+    const targetCell = document.getElementById(`cell-${currentRow}-${currentTrack}`);
+    
+    // 3. Apply the highlight and scroll it into view
+    if (targetCell) {
+        targetCell.classList.add('active');
+        
+        // Ensure the cursor doesn't get hidden behind the gamepad
+        targetCell.scrollIntoView({ 
+            block: 'center', 
+            behavior: 'auto' 
+        });
+    }
+}
+
+// Initialize the grid and set the starting cursor position
+generateTrackerGrid();
+updateCursor(); 
+
+// --- Updated Gamepad Mobile Input Handling ---
+
 bindButton('btn-up', () => {
-    console.log("Navigating UP");
-    if (currentRow > 0) currentRow--;
-    // TODO: Update UI highlight
+    if (currentRow > 0) {
+        currentRow--;
+        updateCursor();
+    }
 });
 
 bindButton('btn-down', () => {
-    console.log("Navigating DOWN");
-    currentRow++;
-    // TODO: Update UI highlight
+    if (currentRow < MAX_ROWS - 1) {
+        currentRow++;
+        updateCursor();
+    }
 });
 
 bindButton('btn-left', () => {
-    console.log("Navigating LEFT track");
-    if (currentTrack > 0) currentTrack--;
-    // TODO: Update UI highlight
+    if (currentTrack > 0) {
+        currentTrack--;
+        updateCursor();
+    }
 });
 
 bindButton('btn-right', () => {
-    console.log("Navigating RIGHT track");
-    currentTrack++;
-    // TODO: Update UI highlight
+    if (currentTrack < MAX_TRACKS - 1) {
+        currentTrack++;
+        updateCursor();
+    }
 });
 
-// Action buttons
-bindButton('btn-a', () => {
-    console.log("ACTION A: Enter Edit Mode / Trigger Note");
-});
-
-bindButton('btn-b', () => {
-    console.log("ACTION B: Delete Note / Back");
-});
 
 // Initialize the grid visually on page load
 generateTrackerGrid();
