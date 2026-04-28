@@ -68,6 +68,61 @@ function generateTrackerGrid(rows = 64, tracks = 4) {
         grid.appendChild(rowDiv);
     }
 }
+// --- 4. Gamepad Mobile Input Handling ---
+
+// Helper function to bind both touch and click for testing on desktop
+function bindButton(id, action) {
+    const btn = document.getElementById(id);
+    if (!btn) return;
+
+    // touchstart is crucial for zero-latency mobile response
+    btn.addEventListener('touchstart', (e) => {
+        e.preventDefault(); // Stop mobile browsers from zooming/scrolling
+        action();
+    });
+    
+    // Keep mousedown for desktop testing
+    btn.addEventListener('mousedown', (e) => {
+        action();
+    });
+}
+
+// Logic for grid navigation (Placeholders for now)
+let currentRow = 0;
+let currentTrack = 0;
+
+bindButton('btn-up', () => {
+    console.log("Navigating UP");
+    if (currentRow > 0) currentRow--;
+    // TODO: Update UI highlight
+});
+
+bindButton('btn-down', () => {
+    console.log("Navigating DOWN");
+    currentRow++;
+    // TODO: Update UI highlight
+});
+
+bindButton('btn-left', () => {
+    console.log("Navigating LEFT track");
+    if (currentTrack > 0) currentTrack--;
+    // TODO: Update UI highlight
+});
+
+bindButton('btn-right', () => {
+    console.log("Navigating RIGHT track");
+    currentTrack++;
+    // TODO: Update UI highlight
+});
+
+// Action buttons
+bindButton('btn-a', () => {
+    console.log("ACTION A: Enter Edit Mode / Trigger Note");
+});
+
+bindButton('btn-b', () => {
+    console.log("ACTION B: Delete Note / Back");
+});
 
 // Initialize the grid visually on page load
 generateTrackerGrid();
