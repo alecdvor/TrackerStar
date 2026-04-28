@@ -94,9 +94,6 @@ function updateCursor() {
     }
 }
 
-// Initialize the grid visually on page load
-generateTrackerGrid();
-updateCursor(); 
 
 // --- 6. Gamepad Mobile Input Handling ---
 function bindButton(id, action) {
@@ -106,43 +103,52 @@ function bindButton(id, action) {
         return;
     }
 
-    // Handle mobile touch
     btn.addEventListener('touchstart', (e) => {
         e.preventDefault(); 
         action();
     });
     
-    // Handle desktop mouse clicks
     btn.addEventListener('mousedown', (e) => {
         action();
     });
 }
 
-// Navigation Bindings
-bindButton('btn-up', () => {
-    if (currentRow > 0) {
-        currentRow--;
-        updateCursor();
-    }
-});
+// --- 7. The Initialization Wrapper ---
+// This guarantees the HTML is 100% drawn before we look for IDs
+document.addEventListener('DOMContentLoaded', () => {
+    
+    // Initialize the grid
+    generateTrackerGrid();
+    updateCursor(); 
 
-bindButton('btn-down', () => {
-    if (currentRow < MAX_ROWS - 1) {
-        currentRow++;
-        updateCursor();
-    }
-});
+    // Bind the buttons safely
+    bindButton('btn-up', () => {
+        if (currentRow > 0) {
+            currentRow--;
+            updateCursor();
+        }
+    });
 
-bindButton('btn-left', () => {
-    if (currentTrack > 0) {
-        currentTrack--;
-        updateCursor();
-    }
-});
+    bindButton('btn-down', () => {
+        if (currentRow < MAX_ROWS - 1) {
+            currentRow++;
+            updateCursor();
+        }
+    });
 
-bindButton('btn-right', () => {
-    if (currentTrack < MAX_TRACKS - 1) {
-        currentTrack++;
-        updateCursor();
-    }
+    bindButton('btn-left', () => {
+        if (currentTrack > 0) {
+            currentTrack--;
+            updateCursor();
+        }
+    });
+
+    bindButton('btn-right', () => {
+        if (currentTrack < MAX_TRACKS - 1) {
+            currentTrack++;
+            updateCursor();
+        }
+    });
+
+    console.log("All tracker UI modules loaded and bound.");
 });
