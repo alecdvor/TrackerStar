@@ -87,7 +87,54 @@ function updateCursor() {
 }
 
 // ==========================================
-// 4. MOBILE GAMEPAD INPUT BINDINGS
+// 4. SEQUENCER STATE & NOTE LOGIC
+// ==========================================
+let isPlaying = false;
+let isEditing = false;
+
+// The standard 12-note chromatic scale used in trackers
+const NOTE_SCALE = ['C-', 'C#', 'D-', 'D#', 'E-', 'F-', 'F#', 'G-', 'G#', 'A-', 'A#', 'B-'];
+
+// Helper function to shift the pitch up or down inside the cell string
+function shiftNote(direction) {
+    const activeCell = document.querySelector('.cell.active');
+    if (!activeCell) return;
+
+    let text = activeCell.innerText;
+    
+    // Parse the current cell text (e.g., 'C-4 01 F ...')
+    let notePart = text.substring(0, 2); // 'C-'
+    let octavePart = parseInt(text.substring(2, 3)); // 4
+    
+    // If it's an empty cell, initialize it before shifting
+    if (isNaN(octavePart)) {
+        notePart = 'C-';
+        octavePart = 4;
+        text = 'C-4 01 F ...'; 
+    }
+
+    let noteIndex = NOTE_SCALE.indexOf(notePart);
+    if (noteIndex === -1) noteIndex = 0;
+
+    // Shift pitch
+    noteIndex += direction;
+
+    // Handle octave wrap-around
+    if (noteIndex >= NOTE_SCALE.length) {
+        noteIndex = 0;
+        if (octavePart < 9) octavePart++;
+    } else if (noteIndex < 0) {
+        noteIndex = NOTE_SCALE.length - 1;
+        if (octavePart > 0) octavePart--;
+    }
+
+    // Reconstruct the string and update the cell
+    const newNoteStr = NOTE_SCALE[noteIndex] + octavePart + text.substring(3);
+    activeCell.innerText = newNoteStr;
+}
+
+// ==========================================
+// 5. MOBILE GAMEPAD INPUT BINDINGS
 // ==========================================
 function bindButton(id, action) {
     const btn = document.getElementById(id);
@@ -103,48 +150,81 @@ function bindButton(id, action) {
     });
 }
 
-// Ensure HTML is fully loaded before binding inputs
 document.addEventListener('DOMContentLoaded', () => {
     
-    // Build the grid and place cursor
     generateTrackerGrid();
     updateCursor(); 
 
-    // D-Pad Bindings
+    // --- System Buttons ---
+    bindButton('btn-start', () => {
+        isPlaying = !isPlaying;
+        const startBtn = document.getElementById('btn-start');
+        if (isPlaying) {
+            startBtn.style.background = '#00ff00';
+            startBtn.style.color = '#121212';
+            console.log("Playback: RUNNING");
+            // Future step: Start the sequencer tick loop here
+        } else {
+            startBtn.style.background = '#444';
+            startBtn.style.color = '#ccc';
+            console.log("Playback: PAUSED");
+            // Future step: Pause the sequencer tick loop here
+        }
+    });
+
+    bindButton('btn-select', () => {
+        console.log("Select button pressed");
+    });
+
+    // --- D-Pad Bindings (Forked by Edit State) ---
     bindButton('btn-up', () => {
-        if (currentRow > 0) {
+        if (isEditing) {
+            shiftNote(1); // Pitch up
+        } else if (currentRow > 0) {
             currentRow--;
             updateCursor();
         }
     });
 
     bindButton('btn-down', () => {
-        if (currentRow < MAX_ROWS - 1) {
+        if (isEditing) {
+            shiftNote(-1); // Pitch down
+        } else if (currentRow < MAX_ROWS - 1) {
             currentRow++;
             updateCursor();
         }
     });
 
     bindButton('btn-left', () => {
-        if (currentTrack > 0) {
+        if (!isEditing && currentTrack > 0) {
             currentTrack--;
             updateCursor();
         }
     });
 
     bindButton('btn-right', () => {
-        if (currentTrack < MAX_TRACKS - 1) {
+        if (!isEditing && currentTrack < MAX_TRACKS - 1) {
             currentTrack++;
             updateCursor();
         }
     });
 
-    // Action Button Bindings
+    // --- Action Button Bindings ---
     bindButton('btn-a', () => {
         const activeCell = document.querySelector('.cell.active');
-        if (activeCell) {
-            activeCell.innerText = 'C-4 01 F ...';
-            
+        if (!activeCell) return;
+
+        isEditing = !isEditing; // Toggle state
+
+        if (isEditing) {
+            // Lock cursor and turn pink
+            activeCell.classList.add('editing');
+            if (activeCell.innerText.startsWith('---')) {
+                activeCell.innerText = 'C-4 01 F ...'; // Default init
+            }
+        } else {
+            // Unlock cursor, remove pink, auto-advance row
+            activeCell.classList.remove('editing');
             if (currentRow < MAX_ROWS - 1) {
                 currentRow++;
                 updateCursor();
@@ -153,11 +233,18 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     bindButton('btn-b', () => {
+        // Cancel edit or delete note
         const activeCell = document.querySelector('.cell.active');
         if (activeCell) {
             activeCell.innerText = '--- .. .. ...';
+            if (isEditing) {
+                isEditing = false;
+                activeCell.classList.remove('editing');
+            }
         }
     });
 
-    console.log("Tracker Engine Initialized Successfully.");
+    bindButton('btn-x', () => console.log("X pressed"));
+    bindButton('btn-y', () => console.log("Y pressed"));
+
 });
